@@ -11,7 +11,9 @@
 
 		$result = CRest::call('user.current');
 
-		echo $result['result']['NAME'].' '.$result['result']['LAST_NAME'];
+        echo '<pre>',print_r($result ?? []),'</pre>';
+
+//		echo $result['result']['NAME'].' '.$result['result']['LAST_NAME'];
 		?>
 	</div>
 </body>
