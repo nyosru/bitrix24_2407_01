@@ -7,6 +7,11 @@
 <body>
 <div id="name">
 	<?php
+
+    echo __FILE__;
+    echo __LINE__;
+    die();
+
 	require_once(__DIR__ . '/crest.php');
 
 	$result = CRest::call('user.current');
